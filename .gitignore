@@ -1,0 +1,32 @@
+# Prerequisites
+*.pyc
+__pycache__/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+*.log
+logs/
+
+# Node / Frontend Build
+node_modules/
+.next/
+out/
+build/
+dist/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo

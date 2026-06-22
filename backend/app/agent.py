@@ -26,7 +26,12 @@ except Exception:
     os.environ["GOOGLE_CLOUD_PROJECT"] = "mock-project-id"
 
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
-os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+
+# Ensure API keys are matched and propagated to ADK model clients
+if "GEMINI_API_KEY" in os.environ:
+    os.environ["API_KEY"] = os.environ["GEMINI_API_KEY"]
+
 
 
 # All placeholder tools removed -- specialist agents own their logic.

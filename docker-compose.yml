@@ -8,9 +8,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-mock-project-id}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-gen-lang-client-0034515573}
       - GOOGLE_CLOUD_LOCATION=global
-      - GOOGLE_GENAI_USE_VERTEXAI=True
+      - GOOGLE_GENAI_USE_VERTEXAI=False
       - ALLOW_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
     volumes:
       - ./backend:/app
