@@ -1,14 +1,15 @@
 # 🛡️ Financial Life Copilot
 
 > **Fiduciary Multi-Agent Copilot for Wealth Architecture & Compliance**
-> Built for the Google Cloud & Vertex AI Agent Hackathon using the **Google Agent Development Kit (ADK)** & **Gemini Enterprise**.
+> Built for the Google Cloud & Vertex AI Agent Hackathon using the **Google ADK** (Agent Development Kit), **MCP** (Model Context Protocol), and **Antigravity** developer environment.
 
 ---
 
 ## 1. Problem Statement
-Managing personal finances, compliance limits (e.g., IRS Sec 401k), and insurance planning is fragmented and error-prone. Standard retail solutions offer generic templates, lack fiduciary safety checks, and force manual document comparisons. 
+Managing personal finances, compliance limits (e.g., EPF / NPS rules), and insurance planning is fragmented and error-prone. Standard retail solutions offer generic templates, lack robust **Security Features**, and force manual document comparisons. 
 
-**Financial Life Copilot** resolves this by automating the ingestion of raw financial files (statements, W2s, payrolls), simulating long-term compounding growth in secure sandboxes, scanning insurance gaps, and synthesizing compliance-checked roadmap items under strict fiduciary guardrails.
+**Financial Life Copilot** resolves this by automating the ingestion of raw financial files (statements, Form 16, payslips), simulating long-term compounding growth in secure sandboxes, scanning insurance gaps, and synthesizing compliance-checked roadmap items under strict fiduciary guardrails. Detailed packaging configuration supports rapid **Deployment on Google Cloud Run**.
+
 
 ---
 
