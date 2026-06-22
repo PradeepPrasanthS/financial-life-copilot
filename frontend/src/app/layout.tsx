@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "Financial Life Copilot | AI-Powered Multi-Agent Wealth Advisor",
-  description: "Secure, cloud-native financial planning platform powered by Google ADK, Gemini 2.5, and Model Context Protocol (MCP).",
-};
+// Premium Global Dark Theme Variables & Utility Classes
+import './globals.css';
 
 export default function RootLayout({
   children,
@@ -12,7 +7,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark-theme">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body>{children}</body>
     </html>
   );

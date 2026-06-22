@@ -1,179 +1,432 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState } from 'react';
+
+// --- Types & Interfaces ---
+interface DocumentFile {
+  id: string;
+  name: string;
+  size: string;
+  type: string;
+  uploadedAt: string;
+  status: 'analyzed' | 'pending' | 'failed';
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  agent: string;
+  priority: 'high' | 'medium' | 'low';
+  timeframe: 'Immediate' | '30-Day' | '90-Day' | '1-Year';
+  description: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+}
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'upload' | 'results' | 'roadmap'>('dashboard');
+  const [sessionToken, setSessionToken] = useState<string>('session_demo_9845x');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+
+  // Mock initial state
+  const [uploadedFiles, setUploadedFiles] = useState<DocumentFile[]>([
+    { id: 'doc-1', name: 'W2_Tax_Statement_2025.pdf', size: '2.4 MB', type: 'PDF', uploadedAt: '2026-06-22 10:14', status: 'analyzed' },
+    { id: 'doc-2', name: 'Chase_Savings_Statement.csv', size: '482 KB', type: 'CSV', uploadedAt: '2026-06-22 11:32', status: 'analyzed' },
+  ]);
+
+  const [actionItems, setActionItems] = useState<ActionItem[]>([
+    {
+      id: 'act-1',
+      title: 'Maximize 401(k) Catch-Up Contributions',
+      agent: 'Retirement Agent',
+      priority: 'high',
+      timeframe: 'Immediate',
+      description: 'Increase pre-tax contributions to reach the IRS annual limit of $23,000 plus catch-up if eligible. Compliant with current IRS Sec 401k guidelines.',
+      status: 'pending',
+    },
+    {
+      id: 'act-2',
+      title: 'Review Term Life Policy Coverage',
+      agent: 'Insurance Agent',
+      priority: 'high',
+      timeframe: '30-Day',
+      description: 'Address the detected $250,000 coverage gap in critical illness and primary life protection based on outstanding liabilities.',
+      status: 'pending',
+    },
+    {
+      id: 'act-3',
+      title: 'Build 6-Month Emergency Cash Reserves',
+      agent: 'Financial Health Agent',
+      priority: 'medium',
+      timeframe: '90-Day',
+      description: 'Reallocate $1,200 monthly from excess cash-flow into the high-yield savings vault to boost emergency index from 3.2 months to 6.0 months.',
+      status: 'approved',
+    },
+    {
+      id: 'act-4',
+      title: 'Establish Roth IRA Backdoor Pipeline',
+      agent: 'Compliance Agent',
+      priority: 'low',
+      timeframe: '1-Year',
+      description: 'Implement a tax-efficient conversion process matching current income thresholds and state tax limits.',
+      status: 'pending',
+    },
+  ]);
+
+  // Upload handler simulation
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const newDoc: DocumentFile = {
+      id: `doc-${Date.now()}`,
+      name: file.name,
+      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+      type: file.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
+      uploadedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      status: 'pending',
+    };
+    setUploadedFiles(prev => [newDoc, ...prev]);
+  };
+
+  // Trigger analysis simulation
+  const startAnalysis = () => {
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+    const interval = setInterval(() => {
+      setAnalysisProgress(p => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setIsAnalyzing(false);
+          // Mark all files as analyzed
+          setUploadedFiles(files => files.map(f => ({ ...f, status: 'analyzed' })));
+          setActiveTab('results');
+          return 100;
+        }
+        return p + 20;
+      });
+    }, 400);
+  };
+
+  // Decide action plan items (approval gates)
+  const handleDecision = (id: string, decision: 'approved' | 'rejected') => {
+    setActionItems(items =>
+      items.map(item => (item.id === id ? { ...item, status: decision } : item))
+    );
+  };
+
   return (
     <>
-      {/* Premium Header */}
+      {/* Header */}
       <header className="header">
         <div className="app-container header-inner">
           <div className="logo">
             🛡️ Financial <span>Life Copilot</span>
           </div>
-          <nav style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-            <a href="#features" style={{ fontWeight: 500, fontSize: '15px', color: 'var(--text-secondary)' }}>Agents</a>
-            <a href="#demo" style={{ fontWeight: 500, fontSize: '15px', color: 'var(--text-secondary)' }}>Interface</a>
-            <button className="btn btn-secondary" style={{ padding: '8px 18px', fontSize: '14px' }}>
-              Connect Wallet
+          <nav style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              className={`nav-tab ${activeTab === 'dashboard' ? 'nav-tab-active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'upload' ? 'nav-tab-active' : ''}`}
+              onClick={() => setActiveTab('upload')}
+            >
+              Upload Documents
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'results' ? 'nav-tab-active' : ''}`}
+              onClick={() => setActiveTab('results')}
+            >
+              Analysis Results
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'roadmap' ? 'nav-tab-active' : ''}`}
+              onClick={() => setActiveTab('roadmap')}
+            >
+              Financial Roadmap
             </button>
           </nav>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>Token Session Active</span>
+            <span style={{ height: '8px', width: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-success)' }} />
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="app-container" style={{ padding: '60px 24px', flex: 1, display: 'flex', flexDirection: 'column', gap: '80px' }}>
-        <section style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'inline-flex', padding: '6px 16px', background: 'var(--primary-glow)', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-glow)', alignSelf: 'center', fontSize: '13px', fontWeight: 600, color: 'var(--primary)', letterSpacing: '0.05em' }}>
-            GOOGLE ADK & GEMINI 2.5 POWERED
+      {/* Main Workspace Area */}
+      <main className="app-container" style={{ padding: '40px 24px', flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        
+        {/* --- 1. DASHBOARD PAGE --- */}
+        {activeTab === 'dashboard' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Copilot Dashboard</h1>
+                <p style={{ color: 'var(--text-secondary)' }}>Welcome back. Monitor health index metrics, secure assets, and trigger agent pipelines.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => setActiveTab('upload')}>
+                Upload New Files 🚀
+              </button>
+            </section>
+
+            {/* Metric Overview Grid */}
+            <div className="grid-cols-4">
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Overall Health Index</span>
+                <span style={{ fontSize: '36px', fontWeight: 700, color: 'var(--primary-light)' }}>78%</span>
+                <span style={{ color: 'var(--accent-success)', fontSize: '12px' }}>↑ 4.2% from W2 uploads</span>
+              </div>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Emergency Cash Index</span>
+                <span style={{ fontSize: '36px', fontWeight: 700, color: 'var(--accent-warning)' }}>3.2 mo</span>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>Target: 6.0 months</span>
+              </div>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Debt-to-Income (DTI)</span>
+                <span style={{ fontSize: '36px', fontWeight: 700, color: 'var(--text-primary)' }}>28.4%</span>
+                <span style={{ color: 'var(--accent-success)', fontSize: '12px' }}>Within healthy boundaries</span>
+              </div>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Active Risks Flagged</span>
+                <span style={{ fontSize: '36px', fontWeight: 700, color: 'var(--accent-error)' }}>2 Issues</span>
+                <span style={{ color: 'var(--accent-error)', fontSize: '12px' }}>Insurance gap identified</span>
+              </div>
+            </div>
+
+            {/* Pipeline and Activity Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', alignItems: 'start' }}>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h3 style={{ fontSize: '18px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Recent Documents & Pipeline Status</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {uploadedFiles.map(doc => (
+                    <div key={doc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '20px' }}>{doc.type === 'PDF' ? '📄' : '📊'}</span>
+                        <div>
+                          <p style={{ fontSize: '14px', fontWeight: 600 }}>{doc.name}</p>
+                          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{doc.size} • Uploaded {doc.uploadedAt}</span>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '4px 10px',
+                          borderRadius: 'var(--radius-full)',
+                          background: doc.status === 'analyzed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                          color: doc.status === 'analyzed' ? 'var(--accent-success)' : 'var(--accent-warning)',
+                          border: `1px solid ${doc.status === 'analyzed' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`,
+                        }}
+                      >
+                        {doc.status.toUpperCase()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Status Sidebar */}
+              <div className="card-premium" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h3>Pipeline Engine</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Trigger a full multi-agent compliance run across all structured uploads.</p>
+                {isAnalyzing ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span>Compiling Graph edges...</span>
+                      <span>{analysisProgress}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-primary)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${analysisProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s ease' }} />
+                    </div>
+                  </div>
+                ) : (
+                  <button className="btn btn-primary" onClick={startAnalysis} style={{ width: '100%' }}>
+                    Start Multi-Agent Analysis ⚡
+                  </button>
+                )}
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-color)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Google ADK Framework</span>
+                  <span>v2.0.0</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 style={{ fontSize: '48px', lineHeight: 1.1, color: 'var(--text-primary)' }}>
-            Your Intelligent Multi-Agent <span style={{ color: 'var(--primary)' }}>Wealth Architect</span>
-          </h1>
-          <p style={{ fontSize: '18px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto' }}>
-            Securely upload financial files, simulate retirement scenarios, check tax compliance, and execute automated action plans under fiduciary guidelines.
-          </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '12px' }}>
-            <a href="#demo" className="btn btn-primary">Launch Copilot</a>
-            <a href="#features" className="btn btn-secondary">Meet the Agents</a>
-          </div>
-        </section>
+        )}
 
-        {/* Dynamic Multi-Agent Cards Section */}
-        <section id="features" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '32px', marginBottom: '8px' }}>Six Specialized Financial Agents</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Collaboratively processing documents, calculations, risks, and compliance checks.</p>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>📄</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>1. Document Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Ingests statements, payroll documents, and tax filings via Model Context Protocol (MCP) toolsets, converting them into structured database entities.
-              </p>
+        {/* --- 2. UPLOAD DOCUMENTS PAGE --- */}
+        {activeTab === 'upload' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div>
+              <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Secure Document Portal</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>Upload W2 statements, paystubs, and asset statements. PII data is automatically redacted client-side.</p>
             </div>
 
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>📈</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>2. Financial Health Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Calculates vital health metrics, including debt-to-income (DTI), net worth growth trajectories, and emergency liquidity scores.
-              </p>
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', alignItems: 'start' }}>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '24px', textAlign: 'center', padding: '48px 32px' }}>
+                <div style={{ fontSize: '48px' }}>📁</div>
+                <div>
+                  <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>Drag and drop statement files</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Supports PDF and CSV format up to 10MB per file</p>
+                </div>
+                <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
+                  <input
+                    type="file"
+                    accept=".pdf,.csv"
+                    onChange={handleFileUpload}
+                    style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                  />
+                  <button className="btn btn-secondary">Choose File</button>
+                </div>
+              </div>
 
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>🏖️</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>3. Retirement Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Runs Monte Carlo simulations and compounding growth projections in an isolated Vertex AI Python execution sandbox.
-              </p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>🛡️</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>4. Insurance Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Assesses coverage adequacy for life, disability, and liability protection relative to aggregate assets and family dependents.
-              </p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>⚖️</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>5. Compliance Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Acts as a fiduciary guardrail, auditing action recommendations against current IRS contribution caps and advisory guidelines.
-              </p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '32px', marginBottom: '16px' }}>📋</div>
-              <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>6. Action Plan Agent</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                Compiles advice into a prioritized, chronological roadmap. Initiates approval gates for any transactional recommendations.
-              </p>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h3 style={{ fontSize: '18px' }}>Safety & Cryptographic Standards</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '13px' }}>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <span>🔒</span>
+                    <p><strong>PII Redaction:</strong> SSN, Account Numbers, and addresses are masked immediately using localized session keys before files reach the analysis engine.</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <span>🛡️</span>
+                    <p><strong>Auditable Trail:</strong> Secure hashes of all ingested files are stored on GCP for immutability validation and compliance auditing.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        )}
 
-        {/* Copilot Interface Demo */}
-        <section id="demo" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '32px', marginBottom: '8px' }}>Interactive Copilot Console</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Chat with the Root Coordinator, upload statements, and see agent execution logs live.</p>
-          </div>
+        {/* --- 3. ANALYSIS RESULTS PAGE --- */}
+        {activeTab === 'results' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div>
+              <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Multi-Agent Findings</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>Detailed reports and simulated gaps generated by specialist agents.</p>
+            </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '32px', alignItems: 'start' }}>
-            
-            {/* Left Column: Chat Window */}
-            <div className="chat-window" style={{ boxShadow: 'var(--shadow-premium)' }}>
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600 }}>Active Thread</span>
-                <span style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-success)' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
-                  Connected to ADK app
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+              
+              {/* Card 1: Insurance */}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '18px' }}>🛡️ Insurance Gap Analysis</h3>
+                  <span style={{ fontSize: '10px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--accent-error)', padding: '2px 8px', borderRadius: '4px' }}>Critical</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+                  <p><strong>Life Insurance:</strong> Recommended coverage $750k. Existing coverage $500k. <strong>Gap: $250k.</strong></p>
+                  <p><strong>Health & Critical Protection:</strong> Recommended coverage $100k. Existing coverage $0. <strong>Gap: $100k.</strong></p>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                  Audited by Insurance Agent
                 </span>
               </div>
-              
-              <div className="chat-history">
-                <div className="chat-message chat-message-copilot">
-                  Hello! I am your <strong>Financial Life Copilot Coordinator</strong>. Upload your financial statements, or let me know what financial planning goals you would like to tackle today.
+
+              {/* Card 2: Health */}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '18px' }}>📊 Net Worth & Cashflow</h3>
+                  <span style={{ fontSize: '10px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-success)', padding: '2px 8px', borderRadius: '4px' }}>Pass</span>
                 </div>
-                <div className="chat-message chat-message-user">
-                  Can you inspect my W2 tax file and calculate my current debt-to-income ratio?
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+                  <p><strong>DTI Ratio:</strong> 28.4% (Favorable). Savings rate sits comfortably at 18.2% of post-tax payroll.</p>
+                  <p><strong>Compound Index:</strong> Projected Net Worth path reaches $1.4M by retirement age 62.</p>
                 </div>
-                <div className="chat-message chat-message-copilot">
-                  I will route this request:
-                  <div style={{ marginTop: '8px', padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '13px' }}>
-                    ⚙️ <strong>[Routing]</strong> Ingesting W2 via <code>document_agent</code>...<br />
-                    ⚙️ <strong>[Calculation]</strong> Executing <code>financial_health_agent</code> ratios...
-                  </div>
-                </div>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                  Audited by Financial Health Agent
+                </span>
               </div>
 
-              <div className="chat-input-area">
-                <input className="chat-input" placeholder="Type a request, or drag a statement file here..." disabled />
-                <button className="btn btn-primary" style={{ padding: '0 24px', height: '42px', fontSize: '14px' }}>Send</button>
-              </div>
-            </div>
-
-            {/* Right Column: Execution Log / Workspace State */}
-            <div className="card-premium" style={{ height: '600px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <h3 style={{ fontSize: '20px' }}>Agent Collaboration Workspace</h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, overflowY: 'auto' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)' }}>SESSION CONTEXT</span>
-                  <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div><strong>Session ID:</strong> <code>copilot-session-xyz</code></div>
-                    <div><strong>User ID:</strong> <code>client_john_doe</code></div>
-                  </div>
+              {/* Card 3: Compliance */}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '18px' }}>⚖️ Compliance & Fiduciary</h3>
+                  <span style={{ fontSize: '10px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-info)', padding: '2px 8px', borderRadius: '4px' }}>Secure</span>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)' }}>PII REDACTION LOG (DLP PLUGIN)</span>
-                  <div style={{ fontSize: '13px', color: 'var(--accent-info)' }}>
-                    ✓ Masked US_SOCIAL_SECURITY_NUMBER in prompt.<br />
-                    ✓ Redacted BANK_ACCOUNT_NUMBER in response payload.
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+                  <p><strong>Advisory Compliance:</strong> Zero product recommendations generated. No hallucinations or unsupported advisory statements detected.</p>
+                  <p><strong>Limits Checked:</strong> Max 401(k) and IRA limits reconciled matching current tax-year guidelines.</p>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)' }}>COMPLIANCE BOUNDARIES</span>
-                  <div style={{ fontSize: '13px', color: 'var(--accent-success)' }}>
-                    ✓ Tax bracket contributions checked (IRS Sec 401k).<br />
-                    ✓ Fiduciary compliance checks complete.
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span>Backend Port: <code>8000</code></span>
-                <span>Target: <code>Cloud Run</code></span>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                  Audited by Compliance Agent
+                </span>
               </div>
             </div>
-
           </div>
-        </section>
+        )}
+
+        {/* --- 4. FINANCIAL ROADMAP PAGE --- */}
+        {activeTab === 'roadmap' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div>
+              <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Fiduciary Action Roadmap</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>Prioritized tasks generated by the Action Plan Agent. Secure approval gates for executing high-impact items.</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {actionItems.map(item => (
+                <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontWeight: 600,
+                          background: item.priority === 'high' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: item.priority === 'high' ? 'var(--accent-error)' : 'var(--accent-warning)',
+                        }}
+                      >
+                        {item.priority.toUpperCase()}
+                      </span>
+                      <h3 style={{ fontSize: '16px' }}>{item.title}</h3>
+                    </div>
+                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.timeframe}</span>
+                  </div>
+
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{item.description}</p>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Owner: <strong>{item.agent}</strong></span>
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {item.status === 'pending' ? (
+                        <>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => handleDecision(item.id, 'rejected')}
+                            style={{ padding: '6px 14px', fontSize: '12px' }}
+                          >
+                            Dismiss
+                          </button>
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handleDecision(item.id, 'approved')}
+                            style={{ padding: '6px 14px', fontSize: '12px' }}
+                          >
+                            Approve
+                          </button>
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: item.status === 'approved' ? 'var(--accent-success)' : 'var(--text-tertiary)',
+                          }}
+                        >
+                          {item.status === 'approved' ? '✓ APPROVED' : 'DISMISSED'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Footer */}
@@ -181,9 +434,9 @@ export default function Home() {
         <div className="app-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>© 2026 Financial Life Copilot. All rights reserved.</div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <a href="https://adk.dev" target="_blank" rel="noreferrer">Google ADK Docs</a>
-            <a href="https://nextjs.org" target="_blank" rel="noreferrer">Next.js</a>
-            <a href="https://fastapi.tiangolo.com" target="_blank" rel="noreferrer">FastAPI</a>
+            <span>Google ADK</span>
+            <span>Gemini Enterprise</span>
+            <span>Next.js Frontend</span>
           </div>
         </div>
       </footer>

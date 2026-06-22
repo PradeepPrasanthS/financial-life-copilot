@@ -68,9 +68,18 @@ from app.workflow import WorkflowInput, WorkflowResult, _approval, run_workflow
 logger = logging.getLogger("copilot.fast_api_app")
 
 setup_telemetry()
-_, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-cloud_logger = logging_client.logger(__name__)
+try:
+    _, project_id = google.auth.default()
+except Exception:
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "mock-project-id")
+
+try:
+    logging_client = google_cloud_logging.Client()
+    cloud_logger = logging_client.logger(__name__)
+except Exception:
+    logging_client = None
+    cloud_logger = logging.getLogger("copilot.fast_api_app.cloud_logger")
+
 
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
@@ -85,7 +94,7 @@ app: FastAPI = get_fast_api_app(
     artifact_service_uri=artifact_service_uri,
     allow_origins=allow_origins,
     session_service_uri=None,
-    otel_to_cloud=True,
+    otel_to_cloud=(logging_client is not None),
 )
 app.title = "Financial Life Copilot API"
 app.description = (
@@ -229,8 +238,12 @@ def collect_feedback(feedback: Feedback) -> dict[str, str]:
     Returns:
         Success message.
     """
-    cloud_logger.log_struct(feedback.model_dump(), severity="INFO")
+    if hasattr(cloud_logger, "log_struct"):
+        cloud_logger.log_struct(feedback.model_dump(), severity="INFO")
+    else:
+        cloud_logger.info("Feedback received: %s", feedback.model_dump())
     return {"status": "success"}
+
 
 
 # ---------------------------------------------------------------------------

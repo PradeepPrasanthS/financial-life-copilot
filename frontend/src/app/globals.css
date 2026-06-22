@@ -7,33 +7,33 @@
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Theme Colors (Light Mode) */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
+  /* Theme Colors (Default Dark Theme for Fiduciary/Premium appeal) */
+  --bg-primary: #050807; /* Sleek, dark emerald-black */
+  --bg-secondary: #0c1210; /* Dark teal card base */
+  --bg-tertiary: #131b18; /* Lighter interactive area background */
   
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
 
-  --primary: #0f766e; /* Deep Teal */
-  --primary-light: #0d9488;
-  --primary-dark: #115e59;
-  --primary-glow: rgba(13, 148, 136, 0.15);
+  --primary: #14b8a6; /* Vibrant Teal */
+  --primary-light: #2dd4bf;
+  --primary-dark: #0f766e;
+  --primary-glow: rgba(20, 184, 166, 0.15);
 
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
   --accent-info: #3b82f6;
 
-  --border-color: #e2e8f0;
-  --border-glow: rgba(15, 118, 110, 0.08);
+  --border-color: #1e2926;
+  --border-glow: rgba(20, 184, 166, 0.08);
 
   /* Elevation / Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
-  --shadow-premium: 0 20px 25px -5px rgba(15, 118, 110, 0.04), 0 8px 10px -6px rgba(15, 118, 110, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
+  --shadow-premium: 0 20px 25px -5px rgba(20, 184, 166, 0.05), 0 8px 10px -6px rgba(20, 184, 166, 0.05);
 
   /* Radius */
   --radius-sm: 6px;
@@ -44,32 +44,6 @@
   /* Transitions */
   --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.15s ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Theme Colors (Dark Mode) */
-    --bg-primary: #080d0c; /* Very deep dark teal tint */
-    --bg-secondary: #0f1615;
-    --bg-tertiary: #141e1c;
-    
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
-
-    --primary: #14b8a6; /* Vibrant Cyan-Teal */
-    --primary-light: #2dd4bf;
-    --primary-dark: #0f766e;
-    --primary-glow: rgba(20, 184, 166, 0.15);
-
-    --border-color: #1e2927;
-    --border-glow: rgba(20, 184, 166, 0.08);
-
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
-    --shadow-premium: 0 20px 25px -5px rgba(20, 184, 166, 0.05), 0 8px 10px -6px rgba(20, 184, 166, 0.05);
-  }
 }
 
 /* Reset & Base Styles */
@@ -108,7 +82,7 @@ a:hover {
   color: var(--primary-light);
 }
 
-/* Common Platform Layouts */
+/* Common Layouts */
 .app-container {
   max-width: 1200px;
   width: 100%;
@@ -116,10 +90,11 @@ a:hover {
   padding: 0 24px;
 }
 
+/* Glassmorphism Header */
 .header {
   height: 80px;
-  background: rgba(15, 22, 21, 0.8);
-  backdrop-filter: blur(12px);
+  background: rgba(12, 18, 16, 0.8);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -149,6 +124,29 @@ a:hover {
   color: var(--primary);
 }
 
+/* Premium Navigation Tabs */
+.nav-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: var(--transition-fast);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.nav-tab-active {
+  color: var(--primary-light);
+  background: var(--primary-glow);
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+.nav-tab:hover:not(.nav-tab-active) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
 /* Premium UI Cards */
 .card {
   background-color: var(--bg-secondary);
@@ -162,7 +160,7 @@ a:hover {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-premium);
-  border-color: var(--primary);
+  border-color: rgba(20, 184, 166, 0.4);
 }
 
 .card-premium {
@@ -202,13 +200,13 @@ a:hover {
 
 .btn-primary {
   background-color: var(--primary);
-  color: #ffffff;
+  color: #0c1210;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-light);
-  transform: scale(1.02);
-  box-shadow: 0 0 15px var(--primary-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px var(--primary-glow);
 }
 
 .btn-secondary {
@@ -222,68 +220,9 @@ a:hover {
   border-color: var(--text-secondary);
 }
 
-/* Copilot Chat Interface Layout */
-.chat-window {
-  display: flex;
-  flex-direction: column;
-  height: 600px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-secondary);
-  overflow: hidden;
-}
-
-.chat-history {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.chat-message {
-  max-width: 70%;
-  padding: 16px 20px;
-  border-radius: var(--radius-md);
-  font-size: 15px;
-}
-
-.chat-message-user {
-  background-color: var(--primary-glow);
-  align-self: flex-end;
-  border-bottom-right-radius: 2px;
-  border: 1px solid var(--border-glow);
-}
-
-.chat-message-copilot {
-  background-color: var(--bg-tertiary);
-  align-self: flex-start;
-  border-bottom-left-radius: 2px;
-}
-
-.chat-input-area {
-  padding: 16px 24px;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
-  display: flex;
-  gap: 12px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 12px 18px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 15px;
-  outline: none;
-  transition: var(--transition-fast);
-}
-
-.chat-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-glow);
+/* Grid helper */
+.grid-cols-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
 }
