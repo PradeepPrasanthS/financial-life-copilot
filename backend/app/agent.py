@@ -32,6 +32,28 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
 if "GEMINI_API_KEY" in os.environ:
     os.environ["API_KEY"] = os.environ["GEMINI_API_KEY"]
 
+# Monkeypatch Pydantic json schema generator for Gemini Developer API compatibility
+# Developer API does not support additionalProperties=False in schema parameters
+if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI") == "False":
+    from pydantic.json_schema import GenerateJsonSchema
+    original_generate = GenerateJsonSchema.generate
+    def patched_generate(self, schema, mode='validation'):
+        json_schema = original_generate(self, schema, mode)
+        # Recursively remove additionalProperties=False or adjust it to True
+        def remove_additional_properties(d):
+            if isinstance(d, dict):
+                if 'additionalProperties' in d:
+                    del d['additionalProperties']
+                for k, v in d.items():
+                    remove_additional_properties(v)
+            elif isinstance(d, list):
+                for item in d:
+                    remove_additional_properties(item)
+        remove_additional_properties(json_schema)
+        return json_schema
+    GenerateJsonSchema.generate = patched_generate
+
+
 
 
 # All placeholder tools removed -- specialist agents own their logic.
