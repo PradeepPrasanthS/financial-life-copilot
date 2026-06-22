@@ -720,10 +720,11 @@ The disclaimer field MUST contain:
 # 4. ADK Agent Definition
 # ---------------------------------------------------------------------------
 
+from app.agent import RobustGemini
+
 action_planning_agent = Agent(
     name="action_planning_agent",
-    model=Gemini(model="gemini-2.5-flash"),
-
+    model=RobustGemini(model="gemini-2.5-flash"),
     mode="task",
     output_schema=ActionPlanReport,
     output_key="action_plan",
@@ -731,3 +732,4 @@ action_planning_agent = Agent(
     tools=[build_action_priority_matrix],
     sub_agents=[compliance_responsible_ai_agent],
 )
+

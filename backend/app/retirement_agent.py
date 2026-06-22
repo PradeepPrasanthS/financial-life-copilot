@@ -223,13 +223,15 @@ Rules:
 - DO NOT recommend commercial funds or brokerages.
 """
 
+from app.agent import RobustGemini
+
 retirement_planning_agent = Agent(
     name="retirement_planning_agent",
-    model=Gemini(model="gemini-2.5-flash"),
-
+    model=RobustGemini(model="gemini-2.5-flash"),
     mode="task",
     output_schema=RetirementPlanReport,
     output_key="retirement_plan",
     instruction=RETIREMENT_PLANNING_PROMPT,
     tools=[compute_retirement_scenarios],
 )
+

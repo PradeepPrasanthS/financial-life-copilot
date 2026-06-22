@@ -34,6 +34,7 @@ from google.adk.workflow import RetryConfig, Workflow, node
 from pydantic import BaseModel, Field
 
 from app.agent import (
+    RobustGemini,
     action_agent,
     document_agent,
     health_agent,
@@ -41,6 +42,7 @@ from app.agent import (
     retirement_agent,
 )
 from app.schemas import ActionItem, FinancialPlan, FinancialProfile
+
 
 
 # Configure logging for production diagnostics
@@ -81,7 +83,8 @@ class ConflictResolutionOutput(BaseModel):
 # Classifier Node: Uses Gemini 2.5 Pro to determine routing
 classifier_agent = Agent(
     name="query_classifier",
-    model=Gemini(model="gemini-2.5-flash"),
+    model=RobustGemini(model="gemini-2.5-flash"),
+
 
     output_schema=QueryClassification,
     output_key="classification",
@@ -171,7 +174,8 @@ async def execute_specialists(
 # Conflict Resolver Node: Uses Gemini 2.5 Pro to merge and reconcile discrepancies
 resolver_agent = Agent(
     name="conflict_resolver",
-    model=Gemini(model="gemini-2.5-flash"),
+    model=RobustGemini(model="gemini-2.5-flash"),
+
 
     output_schema=ConflictResolutionOutput,
     output_key="reconciliation",

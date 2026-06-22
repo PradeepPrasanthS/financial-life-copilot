@@ -56,7 +56,58 @@ if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI") == "False":
 
 
 
-# All placeholder tools removed -- specialist agents own their logic.
+from google.adk.models import Gemini
+import logging
+
+logger = logging.getLogger("copilot.robust_gemini")
+
+class RobustGemini(Gemini):
+    """Robust Gemini Model Wrapper that intercepts errors and falls back.
+    
+    If gemini-2.5-pro or gemini-2.5-flash fails due to 429 quota limits or
+    503 service unavailability, it falls back sequentially:
+    gemini-2.5 -> gemini-2.0-flash -> gemini-1.5-flash.
+    """
+    
+    FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+    
+    def __init__(self, model: str, *args, **kwargs):
+        super().__init__(model=model, *args, **kwargs)
+        self.preferred_model = model
+
+    def _get_fallback_chain(self):
+        # Build chain starting with current preferred model
+        chain = [self.preferred_model]
+        for m in self.FALLBACK_MODELS:
+            if m != self.preferred_model:
+                chain.append(m)
+        return chain
+
+    async def generate_content_async(self, *args, **kwargs):
+        last_error = None
+        chain = self._get_fallback_chain()
+        
+        for model_name in chain:
+            self.model = model_name
+            try:
+                # Attempt to generate content using current model in chain
+                logger.info(f"RobustGemini: Trying model {model_name}...")
+                async for chunk in super().generate_content_async(*args, **kwargs):
+                    yield chunk
+                return
+            except Exception as e:
+                last_error = e
+                err_str = str(e)
+                # Check for rate-limiting or service unavailable codes
+                if "429" in err_str or "503" in err_str or "quota" in err_str.lower() or "demand" in err_str.lower():
+                    logger.warning(f"RobustGemini: Model {model_name} failed due to quota/demand constraints ({e}). Falling back...")
+                    continue
+                else:
+                    # Reraise other errors immediately (e.g. invalid syntax)
+                    raise e
+        # If all fallback models fail, raise the last encountered exception
+        raise last_error
+
 
 
 # --- Specialist Agent Definitions ---
@@ -79,3 +130,14 @@ from app.action_agent import action_planning_agent as action_agent
 # --- Root Coordinator Agent ---
 
 # Default agent configuration (the App instantiation is managed in orchestrator.py)
+
+__all__ = [
+    "document_agent",
+    "health_agent",
+    "retirement_agent",
+    "insurance_agent",
+    "compliance_agent",
+    "action_agent",
+    "RobustGemini",
+]
+
