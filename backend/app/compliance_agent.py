@@ -34,7 +34,7 @@ categorized issues, and actionable remediation steps.
 
 import logging
 import re
-from enum import Enum
+from enum import StrEnum
 
 from google.adk.agents import Agent
 from google.adk.models import Gemini
@@ -48,15 +48,15 @@ logger = logging.getLogger("copilot.compliance_agent")
 # ---------------------------------------------------------------------------
 
 
-class IssueSeverity(str, Enum):
-    INFO = "info"          # Advisory; no compliance breach
-    LOW = "low"            # Minor concern; flag for review
-    MEDIUM = "medium"      # Meaningful breach; recommendation should be revised
-    HIGH = "high"          # Serious violation; recommendation must be blocked
+class IssueSeverity(StrEnum):
+    INFO = "info"  # Advisory; no compliance breach
+    LOW = "low"  # Minor concern; flag for review
+    MEDIUM = "medium"  # Meaningful breach; recommendation should be revised
+    HIGH = "high"  # Serious violation; recommendation must be blocked
     CRITICAL = "critical"  # Regulatory / legal exposure; escalate immediately
 
 
-class IssueCategory(str, Enum):
+class IssueCategory(StrEnum):
     UNSUPPORTED_CLAIM = "unsupported_claim"
     HALLUCINATION = "hallucination"
     MISSING_ASSUMPTION = "missing_assumption"
@@ -73,7 +73,9 @@ class ComplianceIssue(BaseModel):
     issue_id: str = Field(description="Unique identifier (e.g. 'CI-001').")
     category: IssueCategory
     severity: IssueSeverity
-    location: str = Field(description="Quoted text excerpt or field name where the issue was found.")
+    location: str = Field(
+        description="Quoted text excerpt or field name where the issue was found."
+    )
     description: str = Field(description="Plain-English explanation of the violation.")
     remediation: str = Field(description="Specific corrective action required.")
 
@@ -156,17 +158,18 @@ _HIGH_RETURN_PATTERN = re.compile(
 
 _REGULATORY_LIMIT_PATTERN = re.compile(
     r"\b(contribute|invest|put)\s+\$?([\d,]+)\s*(to|in|into)?\s*"
-    r"(401k|ira|roth|hsa|529)\b",
+    r"(401k|ira|roth|hsa|529)\b",  # codespell:ignore hsa
     re.IGNORECASE,
 )
+
 
 # 2024 IRS contribution limits (USD) for quick deterministic check
 _IRS_LIMITS_2024 = {
     "401k": 23_000,
     "ira": 7_000,
     "roth": 7_000,
-    "hsa": 4_150,
-    "529": 18_000,  # Annual gift exclusion proxy
+    "hsa": 4_150,  # codespell:ignore hsa
+    "529": 18_000,
 }
 
 
@@ -286,9 +289,11 @@ def run_rule_engine_checks(recommendations_text: str) -> dict:
 
     # R05 - Missing assumption block
     has_assumptions = bool(
-        re.search(r"\b(assum(ing|ption|ed)|we\s+assum|based\s+on)\b",
-                  recommendations_text,
-                  re.IGNORECASE)
+        re.search(
+            r"\b(assum(ing|ption|ed)|we\s+assum|based\s+on)\b",  # codespell:ignore assum
+            recommendations_text,
+            re.IGNORECASE,
+        )
     )
     if not has_assumptions:
         findings.append(
@@ -317,7 +322,9 @@ def run_rule_engine_checks(recommendations_text: str) -> dict:
         IssueSeverity.LOW.value: 3,
         IssueSeverity.INFO.value: 1,
     }
-    rule_score = min(100.0, sum(severity_weights.get(f["severity"], 0) for f in findings))
+    rule_score = min(
+        100.0, sum(severity_weights.get(f["severity"], 0) for f in findings)
+    )
 
     return {
         "findings": findings,

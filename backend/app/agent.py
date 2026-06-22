@@ -16,10 +16,6 @@
 import os
 
 import google.auth
-from google.adk.agents import Agent
-from google.adk.models import Gemini
-
-from app.schemas import FinancialPlan
 
 
 # Set up project environment variables for Gemini Enterprise Agent Platform
@@ -33,22 +29,7 @@ os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
-# --- Placeholder Specialist Tools (No business logic yet) ---
-
-
-def verify_compliance(checklist_json: str) -> dict:
-    """Reviews recommendation list for tax boundaries and regulatory limits.
-
-    Args:
-        checklist_json: JSON string representing suggested action items.
-
-    Returns:
-        A dict indicating compliance approval status.
-    """
-    return {
-        "passed": True,
-        "fiduciary_statement": "Recommendations comply with FINRA fiduciary standard.",
-    }
+# All placeholder tools removed -- specialist agents own their logic.
 
 
 # --- Specialist Agent Definitions ---
@@ -63,24 +44,9 @@ from app.retirement_agent import retirement_planning_agent as retirement_agent
 
 from app.insurance_agent import insurance_gap_analysis_agent as insurance_agent
 
-compliance_agent = Agent(
-    name="compliance_agent",
-    model=Gemini(model="gemini-2.5-flash"),
-    mode="task",
-    description="Fiduciary compliance validator checking IRS limits and financial guidelines.",
-    instruction="Inspect suggested action list with verify_compliance to ensure conformity with regulatory guidelines. Call finish_task.",
-    tools=[verify_compliance],
-)
+from app.compliance_agent import compliance_responsible_ai_agent as compliance_agent
 
-action_agent = Agent(
-    name="action_plan_agent",
-    model=Gemini(model="gemini-2.5-pro"),
-    mode="task",
-    output_schema=FinancialPlan,
-    description="Compiles final checklist of action steps. References compliance validator to check recommendations.",
-    instruction="Synthesize financial findings into a FinancialPlan. Check details with compliance_agent. Call finish_task.",
-    sub_agents=[compliance_agent],
-)
+from app.action_agent import action_planning_agent as action_agent
 
 
 # --- Root Coordinator Agent ---

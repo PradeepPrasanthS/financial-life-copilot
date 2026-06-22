@@ -19,7 +19,14 @@ dependencies = [
     "asyncpg>=0.30.0,<1.0.0",
     "sqlalchemy>=2,<3",
     "python-multipart>=0.0.20,<1.0.0",
+    # MCP + Google Workspace API dependencies
+    "mcp>=1.0.0,<2.0.0",
+    "google-api-python-client>=2.150.0,<3.0.0",
+    "google-auth-httplib2>=0.2.0,<1.0.0",
+    "google-auth-oauthlib>=1.2.0,<2.0.0",
+    "google-cloud-secret-manager>=2.20.0,<3.0.0",
 ]
+
 requires-python = ">=3.11,<3.14"
 
 
