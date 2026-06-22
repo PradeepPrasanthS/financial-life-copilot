@@ -722,7 +722,8 @@ The disclaimer field MUST contain:
 
 action_planning_agent = Agent(
     name="action_planning_agent",
-    model=Gemini(model="gemini-2.5-pro"),
+    model=Gemini(model="gemini-2.5-flash"),
+
     mode="task",
     output_schema=ActionPlanReport,
     output_key="action_plan",

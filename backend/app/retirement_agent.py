@@ -225,7 +225,8 @@ Rules:
 
 retirement_planning_agent = Agent(
     name="retirement_planning_agent",
-    model=Gemini(model="gemini-2.5-pro"),
+    model=Gemini(model="gemini-2.5-flash"),
+
     mode="task",
     output_schema=RetirementPlanReport,
     output_key="retirement_plan",

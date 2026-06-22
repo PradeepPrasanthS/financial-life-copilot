@@ -36,10 +36,14 @@ Routers
   POST /feedback           Log user feedback (ADK built-in)
 """
 
+# Ensure agent environment configurations load first
+from app import agent
+
 import logging
 import os
 import time
 import uuid
+
 
 import google.auth
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response

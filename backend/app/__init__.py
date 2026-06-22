@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Import agent configuration first to initialize environment variables (Vertex/API keys)
+from . import agent
 from .orchestrator import app
 
 __all__ = ["app"]
+
