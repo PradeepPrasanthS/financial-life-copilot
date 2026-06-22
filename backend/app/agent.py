@@ -61,6 +61,8 @@ import logging
 
 logger = logging.getLogger("copilot.robust_gemini")
 
+from typing import ClassVar
+
 class RobustGemini(Gemini):
     """Robust Gemini Model Wrapper that intercepts errors and falls back.
     
@@ -69,11 +71,20 @@ class RobustGemini(Gemini):
     gemini-2.5 -> gemini-2.0-flash -> gemini-1.5-flash.
     """
     
-    FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+    FALLBACK_MODELS: ClassVar[list[str]] = [
+        "gemini-3.5-flash",
+        "gemini-3-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
+    ]
+
+
     
     def __init__(self, model: str, *args, **kwargs):
         super().__init__(model=model, *args, **kwargs)
-        self.preferred_model = model
+        object.__setattr__(self, "preferred_model", model)
+
 
     def _get_fallback_chain(self):
         # Build chain starting with current preferred model
@@ -83,30 +94,40 @@ class RobustGemini(Gemini):
                 chain.append(m)
         return chain
 
-    async def generate_content_async(self, *args, **kwargs):
+    async def generate_content_async(self, llm_request, stream: bool = False, *args, **kwargs):
         last_error = None
         chain = self._get_fallback_chain()
         
         for model_name in chain:
-            self.model = model_name
             try:
-                # Attempt to generate content using current model in chain
-                logger.info(f"RobustGemini: Trying model {model_name}...")
-                async for chunk in super().generate_content_async(*args, **kwargs):
+                # Update attributes on parent model class
+                object.__setattr__(self, "model", model_name)
+                # Mutate the actual request object model property
+                if hasattr(llm_request, "model"):
+                    object.__setattr__(llm_request, "model", model_name)
+                
+                # Re-force client builder logic if internal setup functions exist
+                if hasattr(self, "_client"):
+                    # Force clean setup of client reference
+                    object.__setattr__(self, "_client", None)
+
+                logger.info(f"RobustGemini: Invoking request using {model_name}...")
+                
+                # Use standard generator run of super class
+                async for chunk in super().generate_content_async(llm_request, stream, *args, **kwargs):
                     yield chunk
                 return
             except Exception as e:
                 last_error = e
                 err_str = str(e)
-                # Check for rate-limiting or service unavailable codes
                 if "429" in err_str or "503" in err_str or "quota" in err_str.lower() or "demand" in err_str.lower():
-                    logger.warning(f"RobustGemini: Model {model_name} failed due to quota/demand constraints ({e}). Falling back...")
+                    logger.warning(f"RobustGemini: Model {model_name} rate limited or unavailable ({e}). Escalating fallback...")
                     continue
                 else:
-                    # Reraise other errors immediately (e.g. invalid syntax)
                     raise e
-        # If all fallback models fail, raise the last encountered exception
         raise last_error
+
+
 
 
 
